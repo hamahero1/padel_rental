@@ -1,30 +1,42 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:padel_rental/models/equipment.dart';
+import 'package:padel_rental/services/cart.dart';
 
-import 'package:padel_rental/main.dart';
+Equipment item(String id, double price, int quantity) => Equipment(
+      id: id,
+      name: 'Item $id',
+      description: '',
+      categoryId: 'c',
+      categoryName: 'Rackets',
+      price: price,
+      quantity: quantity,
+      barcode: '',
+    );
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  test('total = sum of (price x quantity) x days', () {
+    final cart = Cart();
+    cart.add(item('a', 50, 5), 2); // 100 per day
+    cart.add(item('b', 10, 5), 3); // 30 per day
+    cart.setDays(3);
+    expect(cart.perDay, 130);
+    expect(cart.total, 390);
+    expect(cart.count, 5);
+  });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  test('quantity cannot go above available stock', () {
+    final cart = Cart();
+    final racket = item('a', 50, 2);
+    cart.add(racket, 1);
+    cart.add(racket, 5); // same item again -> merged and capped at 2
+    expect(cart.items.length, 1);
+    expect(cart.items.first.quantity, 2);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  test('setting quantity to 0 removes the item', () {
+    final cart = Cart();
+    cart.add(item('a', 50, 2), 1);
+    cart.setQuantity(cart.items.first, 0);
+    expect(cart.items, isEmpty);
   });
 }
