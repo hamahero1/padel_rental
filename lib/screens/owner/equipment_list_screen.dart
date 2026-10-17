@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../models/equipment.dart';
 import '../../services/db_service.dart';
 import '../../utils.dart';
+import '../../widgets/equipment_qr.dart';
 import 'equipment_form_screen.dart';
 
 /// Owner's list of all equipment with add / edit / delete.
@@ -74,9 +75,20 @@ class EquipmentListScreen extends StatelessWidget {
                       '${e.categoryName}\n${money(e.price)} / day  •  Qty: ${e.quantity}'),
                   isThreeLine: true,
                   onTap: () => _openForm(context, e),
-                  trailing: IconButton(
-                    icon: const Icon(Icons.delete_outline),
-                    onPressed: () => _confirmDelete(context, e),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (e.barcode.isNotEmpty)
+                        IconButton(
+                          tooltip: 'Show QR code',
+                          icon: const Icon(Icons.qr_code_2),
+                          onPressed: () => showQrDialog(context, e),
+                        ),
+                      IconButton(
+                        icon: const Icon(Icons.delete_outline),
+                        onPressed: () => _confirmDelete(context, e),
+                      ),
+                    ],
                   ),
                 ),
               );

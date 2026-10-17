@@ -4,6 +4,7 @@ import '../../models/app_user.dart';
 import '../../models/equipment.dart';
 import '../../services/cart.dart';
 import '../../utils.dart';
+import '../../widgets/equipment_qr.dart';
 import 'player_home_screen.dart';
 
 /// Shows one piece of equipment and lets the player add it to the cart.
@@ -57,12 +58,13 @@ class _ProductDetailsScreenState extends State<ProductDetailsScreen> {
             leading: const Icon(Icons.inventory_2),
             title: Text(outOfStock ? 'Out of stock' : '${e.quantity} available'),
           ),
-          if (e.barcode.isNotEmpty)
-            ListTile(
-              contentPadding: EdgeInsets.zero,
-              leading: const Icon(Icons.qr_code),
-              title: Text(e.barcode),
-            ),
+          if (e.barcode.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            const Text('Scan this QR code to find this equipment',
+                textAlign: TextAlign.center),
+            const SizedBox(height: 8),
+            Center(child: EquipmentQr(equipment: e)),
+          ],
           const SizedBox(height: 16),
           if (!outOfStock) ...[
             // Quantity selector: - 1 +

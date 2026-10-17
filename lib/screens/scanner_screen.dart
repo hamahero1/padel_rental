@@ -26,15 +26,15 @@ class _ScannerScreenState extends State<ScannerScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Scan barcode')),
+      appBar: AppBar(title: const Text('Scan QR code or barcode')),
       body: Stack(
         children: [
           MobileScanner(onDetect: _onDetect),
           // A simple frame to show where to point the camera
           Center(
             child: Container(
-              width: 260,
-              height: 160,
+              width: 250,
+              height: 250,
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.white, width: 3),
                 borderRadius: BorderRadius.circular(12),
@@ -45,7 +45,7 @@ class _ScannerScreenState extends State<ScannerScreen> {
             left: 0,
             right: 0,
             bottom: 40,
-            child: Text('Point the camera at the barcode',
+            child: Text('Point the camera at the QR code or barcode',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.white, fontSize: 16)),
           ),

@@ -49,7 +49,11 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
       categoryName: category.name,
       price: double.parse(_price.text.trim()),
       quantity: int.parse(_quantity.text.trim()),
-      barcode: _barcode.text.trim(),
+      // Every equipment gets a code for its QR code. If the owner left it
+      // empty, make a unique one from the current time.
+      barcode: _barcode.text.trim().isEmpty
+          ? 'P${DateTime.now().millisecondsSinceEpoch}'
+          : _barcode.text.trim(),
     );
     setState(() => _saving = true);
     try {
@@ -153,7 +157,8 @@ class _EquipmentFormScreenState extends State<EquipmentFormScreen> {
                 TextFormField(
                   controller: _barcode,
                   decoration: InputDecoration(
-                    labelText: 'Barcode (optional)',
+                    labelText: 'QR / barcode code',
+                    helperText: 'Leave empty to create one automatically',
                     suffixIcon: IconButton(
                       tooltip: 'Scan with camera',
                       icon: const Icon(Icons.qr_code_scanner),

@@ -5,6 +5,7 @@ import '../../services/auth_service.dart';
 import '../auth/login_screen.dart';
 import 'categories_screen.dart';
 import 'equipment_list_screen.dart';
+import 'qr_codes_screen.dart';
 import 'rentals_screen.dart';
 import 'report_screen.dart';
 
@@ -35,6 +36,8 @@ class OwnerHomeScreen extends StatelessWidget {
           const RentalsScreen()),
       ('Transaction report', 'Rentals & returns on a date', Icons.bar_chart,
           const ReportScreen()),
+      ('QR codes', 'Show or print the equipment QR codes', Icons.qr_code_2,
+          const QrCodesScreen()),
     ];
     return Scaffold(
       appBar: AppBar(
