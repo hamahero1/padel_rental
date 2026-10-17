@@ -5,6 +5,7 @@ import '../../models/app_user.dart';
 import '../../models/category.dart';
 import '../../models/equipment.dart';
 import '../../services/db_service.dart';
+import '../../services/search.dart';
 import '../../utils.dart';
 import '../scanner_screen.dart';
 import 'player_home_screen.dart';
@@ -29,6 +30,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
   // Created once; typing in the search box only filters, it doesn't re-read
   late final Stream<List<Equipment>> _equipmentStream =
       DbService.equipmentStream(categoryId: widget.category?.id);
+  // Last list from Firestore, used to pick the best voice result
+  List<Equipment> _allItems = [];
 
   // ---- Search by voice ----
   Future<void> _voiceSearch() async {
@@ -50,14 +53,38 @@ class _ProductsScreenState extends State<ProductsScreen> {
       showMsg('Voice search is not available on this device');
       return;
     }
-    setState(() => _listening = true);
-    await _speech.listen(onResult: (result) {
-      // Put what the user said into the search box
-      setState(() {
-        _searchController.text = result.recognizedWords;
-        _query = result.recognizedWords;
-      });
+    setState(() {
+      _listening = true;
+      _searchController.clear();
+      _query = '';
     });
+    await _speech.listen(
+      listenOptions: SpeechListenOptions(
+        localeId: 'en_US', // product names are in English
+        partialResults: true, // show the words while the user speaks
+        listenMode: ListenMode.search,
+        cancelOnError: true,
+        listenFor: const Duration(seconds: 15),
+        pauseFor: const Duration(seconds: 3),
+      ),
+      onResult: (result) {
+        var words = result.recognizedWords;
+        // The recognizer gives a few guesses. At the end, use the first
+        // guess that actually finds equipment.
+        if (result.finalResult) {
+          for (final guess in result.alternates) {
+            if (searchEquipment(_allItems, guess.recognizedWords).isNotEmpty) {
+              words = guess.recognizedWords;
+              break;
+            }
+          }
+        }
+        setState(() {
+          _searchController.text = words;
+          _query = words;
+        });
+      },
+    );
   }
 
   // ---- Search by barcode ----
@@ -106,7 +133,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(
-                      hintText: _listening ? 'Listening...' : 'Search by name',
+                      hintText: _listening
+                          ? 'Listening... say a product'
+                          : 'Search by name',
                       prefixIcon: const Icon(Icons.search),
                       isDense: true,
                       suffixIcon: _query.isEmpty
@@ -136,6 +165,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
               ],
             ),
           ),
+          // Moving bar while the microphone is listening
+          if (_listening) const LinearProgressIndicator(),
           Expanded(
             child: StreamBuilder<List<Equipment>>(
               stream: _equipmentStream,
@@ -146,13 +177,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 if (!snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
-                // Text search: keep items whose name or category contains the words
-                final q = _query.trim().toLowerCase();
-                final items = snapshot.data!
-                    .where((e) =>
-                        e.name.toLowerCase().contains(q) ||
-                        e.categoryName.toLowerCase().contains(q))
-                    .toList();
+                _allItems = snapshot.data!;
+                // Same search for typed and spoken words (see search.dart)
+                final items = searchEquipment(_allItems, _query);
                 if (items.isEmpty) {
                   return const Center(child: Text('No equipment found'));
                 }
