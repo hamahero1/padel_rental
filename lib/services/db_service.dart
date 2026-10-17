@@ -64,6 +64,60 @@ class DbService {
     return Equipment.fromDoc(snap.docs.first);
   }
 
+  // ---------------- Default data ----------------
+
+  /// Default categories and equipment: category -> [name, description, price per day, quantity, barcode]
+  static const _defaultData = {
+    'Padel Rackets': [
+      ['Bullpadel Vertex 04', 'Power racket for advanced players', 120.0, 5, '1001'],
+      ['Head Delta Pro', 'Control racket, light and easy to handle', 100.0, 6, '1002'],
+      ['Adidas Metalbone', 'All-round racket for intermediate players', 110.0, 4, '1003'],
+    ],
+    'Balls': [
+      ['Head Padel Pro Balls (3 pack)', 'Official tournament balls', 20.0, 30, '2001'],
+      ['Wilson Padel Balls (3 pack)', 'Good balls for training', 15.0, 25, '2002'],
+    ],
+    'Shoes': [
+      ['Asics Gel Padel Pro', 'Padel shoes with good grip, sizes 40-45', 60.0, 8, '3001'],
+      ['Babolat Movea', 'Light and comfortable padel shoes', 55.0, 6, '3002'],
+    ],
+    'Bags': [
+      ['Bullpadel Racket Bag', 'Holds up to 3 rackets', 30.0, 5, '4001'],
+      ['Head Tour Backpack', 'Backpack with racket pocket', 25.0, 5, '4002'],
+    ],
+    'Accessories': [
+      ['Overgrip (pack of 3)', 'Keeps the handle dry and soft', 10.0, 20, '5001'],
+      ['Wristbands', 'Cotton wristbands', 8.0, 15, '5002'],
+      ['Ball Hopper', 'Basket to carry and pick up balls', 35.0, 3, '5003'],
+    ],
+  };
+
+  /// Adds the default categories and equipment if there are no categories yet.
+  /// Only an owner is allowed to write them (see firestore.rules).
+  static Future<void> addDefaultDataIfEmpty() async {
+    final existing = await _categories.limit(1).get();
+    if (existing.docs.isNotEmpty) return;
+    final batch = _db.batch();
+    _defaultData.forEach((categoryName, items) {
+      final categoryRef = _categories.doc();
+      batch.set(categoryRef, {'name': categoryName});
+      for (final item in items) {
+        batch.set(
+            _equipment.doc(),
+            Equipment(
+              name: item[0] as String,
+              description: item[1] as String,
+              categoryId: categoryRef.id,
+              categoryName: categoryName,
+              price: item[2] as double,
+              quantity: item[3] as int,
+              barcode: item[4] as String,
+            ).toMap());
+      }
+    });
+    await batch.commit();
+  }
+
   static Future<int> countEquipmentInCategory(String categoryId) async {
     final snap =
         await _equipment.where('categoryId', isEqualTo: categoryId).get();

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/app_user.dart';
+import 'db_service.dart';
 
 /// Everything about accounts: sign-up, login, remember me,
 /// forget password and logout.
@@ -29,6 +30,7 @@ class AuthService {
       birthdate: birthdate,
     );
     await _users.doc(user.uid).set(user.toMap());
+    await _addDefaultDataForOwner(user);
     return user;
   }
 
@@ -44,7 +46,7 @@ class AuthService {
     } else {
       await prefs.remove('saved_email');
     }
-    return getUser(cred.user!.uid);
+    return _addDefaultDataForOwner(await getUser(cred.user!.uid));
   }
 
   /// Called when the app starts. Returns the logged-in user only if
@@ -58,7 +60,20 @@ class AuthService {
       await _auth.signOut();
       return null;
     }
-    return getUser(current.uid);
+    return _addDefaultDataForOwner(await getUser(current.uid));
+  }
+
+  /// The first time an owner logs in, the app gets default
+  /// categories and equipment so it isn't empty.
+  static Future<AppUser> _addDefaultDataForOwner(AppUser user) async {
+    if (user.isOwner) {
+      try {
+        await DbService.addDefaultDataIfEmpty();
+      } catch (_) {
+        // Not important enough to stop the login
+      }
+    }
+    return user;
   }
 
   static Future<String> savedEmail() async {
