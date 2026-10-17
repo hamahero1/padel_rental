@@ -46,3 +46,6 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Firebase config (contains project keys) - share it privately
+android/app/google-services.json
