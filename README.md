@@ -3,6 +3,8 @@
 Flutter + Firebase app for renting padel equipment.
 Two kinds of users: **Players** (rent equipment) and **Facility Owners** (manage equipment).
 
+New to Flutter? Start with **[PROJECT_GUIDE.md](PROJECT_GUIDE.md)**: Dart basics plus a step-by-step scenario for every feature.
+
 ## Requirements → where they are in the code
 
 | Requirement | Screen / file | How it works |
@@ -23,6 +25,8 @@ Two kinds of users: **Players** (rent equipment) and **Facility Owners** (manage
 | Owner: Set rental price & quantity | `equipment_form_screen.dart` | "Price per day" and "Available quantity" fields |
 | Owner: Transaction report on a date | `screens/owner/report_screen.dart` | Pick a date → shows rentals made and equipment returned that day + income |
 | Database: Firebase | `services/db_service.dart`, `services/auth_service.dart` | Firebase Auth + Cloud Firestore |
+
+Default data: the first time a facility owner signs up or logs in and there are no categories yet, `DbService.addDefaultDataIfEmpty()` adds 5 categories (Padel Rackets, Balls, Shoes, Bags, Accessories) and 12 pieces of equipment with prices, quantities and barcodes (1001, 1002, ... 5003).
 
 Extra: the owner marks rentals as returned in `screens/owner/rentals_screen.dart`, which puts the quantity back and saves the return date (that's what the report shows as "returns").
 
